@@ -45,3 +45,45 @@ Flight status can be one of: `scheduled`, `flying`, `paused`, `landed`
 - Frontend: React with Leaflet for maps
 - Backend: FastAPI
 - Data Storage: In-memory (no persistence)
+
+## Implementation Notes
+
+### Webhook Integration
+
+When deploying to vuelospparaiso.tecndev.com, configure your systems to send webhook requests to:
+
+- Position updates: POST to `https://vuelospparaiso.tecndev.com/api/webhook/position`
+- Flight status updates: POST to `https://vuelospparaiso.tecndev.com/api/webhook/flight`
+
+Make sure each flight has a unique ID that is used consistently between position and status updates.
+
+### Example cURL Commands for Testing
+
+```bash
+# Update flight status
+curl -X POST "https://vuelospparaiso.tecndev.com/api/webhook/flight" \
+-H "Content-Type: application/json" \
+-d '{
+  "id": "vuelo-123",
+  "pilot_name": "Juan Perez",
+  "passenger_name": "Maria Lopez",
+  "status": "flying",
+  "scheduled_departure": "2025-03-15T10:30:00Z"
+}'
+
+# Update position
+curl -X POST "https://vuelospparaiso.tecndev.com/api/webhook/position" \
+-H "Content-Type: application/json" \
+-d '{
+  "id": "vuelo-123",
+  "latitude": 4.6097,
+  "longitude": -74.0817,
+  "altitude": 2800
+}'
+```
+
+### TV Display Recommendations
+
+- The dashboard is designed to be displayed on a TV or large monitor
+- Recommended resolution: 1920x1080 (Full HD) or higher
+- Use a browser in full-screen mode (F11 in most browsers)
