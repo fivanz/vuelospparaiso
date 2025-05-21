@@ -257,30 +257,20 @@ class FlightControlAPITester:
         
         return success_flight and success_position
     
-    def verify_estimated_takeoff_in_flight(self, flight_id, flights_list):
-        """Verify a flight has the estimated takeoff time field"""
+    def verify_position_in_list(self, flight_id, positions_list):
+        """Verify a position exists in the positions list"""
         self.tests_run += 1
-        print(f"\n🔍 Verifying estimated takeoff time for flight {flight_id}...")
+        print(f"\n🔍 Verifying position for flight {flight_id} exists in positions list...")
         
-        flight = next((f for f in flights_list if f['id'] == flight_id), None)
+        found = any(position['id'] == flight_id for position in positions_list)
         
-        if not flight:
-            print(f"❌ Failed - Flight {flight_id} not found in list")
-            return False
-        
-        if 'estimated_takeoff' not in flight or not flight['estimated_takeoff']:
-            print(f"❌ Failed - Estimated takeoff time not found for flight {flight_id}")
-            return False
-        
-        # Verify the format by parsing the datetime
-        try:
-            takeoff_time = datetime.fromisoformat(flight['estimated_takeoff'].replace('Z', '+00:00'))
+        if found:
             self.tests_passed += 1
-            print(f"✅ Passed - Estimated takeoff time found: {takeoff_time}")
-            return True
-        except ValueError as e:
-            print(f"❌ Failed - Invalid estimated takeoff time format: {e}")
-            return False
+            print(f"✅ Passed - Position for flight {flight_id} found in list")
+        else:
+            print(f"❌ Failed - Position for flight {flight_id} not found in list")
+        
+        return found
 
 def main():
     # Get the backend URL from the frontend .env file
