@@ -1,23 +1,17 @@
 from fastapi import FastAPI, APIRouter
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
-from motor.motor_asyncio import AsyncIOMotorClient
 import os
 import logging
 from pathlib import Path
 from pydantic import BaseModel, Field
-from typing import List
+from typing import List, Dict, Optional, Union
 import uuid
 from datetime import datetime
 
-
+# Root directory and environment variables
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
-
-# MongoDB connection
-mongo_url = os.environ['MONGO_URL']
-client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ['DB_NAME']]
 
 # Create the main app without a prefix
 app = FastAPI()
@@ -25,36 +19,57 @@ app = FastAPI()
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
 
+# In-memory storage for flights and positions (instead of MongoDB)
+flights_data: Dict[str, dict] = {}
+positions_data: Dict[str, dict] = {}
 
 # Define Models
-class StatusCheck(BaseModel):
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    client_name: str
+class GeoPosition(BaseModel):
+    id: str
+    latitude: float
+    longitude: float
+    altitude: float
     timestamp: datetime = Field(default_factory=datetime.utcnow)
 
-class StatusCheckCreate(BaseModel):
-    client_name: str
+class FlightStatus(BaseModel):
+    id: str
+    pilot_name: str
+    passenger_name: str
+    status: str  # "scheduled", "paused", "flying", "landed"
+    scheduled_departure: Optional[datetime] = None
+    timestamp: datetime = Field(default_factory=datetime.utcnow)
 
-# Add your routes to the router instead of directly to app
+# API Routes
 @api_router.get("/")
 async def root():
-    return {"message": "Hello World"}
+    return {"message": "Flight Control Dashboard API"}
 
-@api_router.post("/status", response_model=StatusCheck)
-async def create_status_check(input: StatusCheckCreate):
-    status_dict = input.dict()
-    status_obj = StatusCheck(**status_dict)
-    _ = await db.status_checks.insert_one(status_obj.dict())
-    return status_obj
+@api_router.post("/webhook/position")
+async def update_position(position: GeoPosition):
+    """Webhook endpoint to receive position updates from external systems"""
+    positions_data[position.id] = position.dict()
+    return {"status": "success", "message": f"Position updated for ID: {position.id}"}
 
-@api_router.get("/status", response_model=List[StatusCheck])
-async def get_status_checks():
-    status_checks = await db.status_checks.find().to_list(1000)
-    return [StatusCheck(**status_check) for status_check in status_checks]
+@api_router.post("/webhook/flight")
+async def update_flight(flight: FlightStatus):
+    """Webhook endpoint to receive flight status updates from external systems"""
+    flights_data[flight.id] = flight.dict()
+    return {"status": "success", "message": f"Flight status updated for ID: {flight.id}"}
+
+@api_router.get("/positions")
+async def get_positions():
+    """Get all current positions"""
+    return list(positions_data.values())
+
+@api_router.get("/flights")
+async def get_flights():
+    """Get all current flights"""
+    return list(flights_data.values())
 
 # Include the router in the main app
 app.include_router(api_router)
 
+# CORS Configuration
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
@@ -69,7 +84,3 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
-
-@app.on_event("shutdown")
-async def shutdown_db_client():
-    client.close()
