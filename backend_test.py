@@ -9,11 +9,19 @@ class FlightControlAPITester:
         self.tests_run = 0
         self.tests_passed = 0
         self.test_flight_ids = []
+        self.api_key = "vuelos_paraiso_api_key_2025"  # Default API key from server.py
 
-    def run_test(self, name, method, endpoint, expected_status, data=None):
+    def run_test(self, name, method, endpoint, expected_status, data=None, use_api_key=False, invalid_api_key=False):
         """Run a single API test"""
         url = f"{self.base_url}/api/{endpoint}"
         headers = {'Content-Type': 'application/json'}
+        
+        # Add API key header if requested
+        if use_api_key:
+            if invalid_api_key:
+                headers['X-API-Key'] = "invalid_key_for_testing"
+            else:
+                headers['X-API-Key'] = self.api_key
         
         self.tests_run += 1
         print(f"\n🔍 Testing {name}...")
