@@ -23,7 +23,7 @@
 .flight-list {
   flex: 1;
   height: 100%;
-  overflow: hidden; /* Changed from overflow-y: auto to prevent scrolling */
+  overflow: hidden; /* No scrolling for TV display */
   display: flex;
   flex-direction: column;
   background-color: #0f172a; /* Dark background for better visibility */
@@ -36,7 +36,7 @@
   font-weight: 700;
   color: white;
   text-align: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
   border-bottom: 2px solid #38bdf8;
   padding-bottom: 0.5rem;
 }
@@ -45,28 +45,35 @@
 .flight-cards {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem; /* Reduced gap to fit more cards */
+  gap: 0.5rem;
   flex: 1;
+  overflow-y: auto; /* Allow scrolling within this container if needed */
+  padding-right: 4px; /* Space for scrollbar */
 }
 
 .flight-card {
-  padding: 0.75rem; /* Reduced padding to make cards more compact */
+  padding: 0.75rem;
   border-radius: 0.5rem;
   border-left: 4px solid;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   transition: all 0.3s;
+  background-color: rgba(15, 23, 42, 0.7); /* Dark semi-transparent background */
 }
 
 .flight-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 0.25rem; /* Reduced margin */
+  margin-bottom: 0.25rem;
 }
 
-.flight-id {
-  font-weight: 600;
-  font-family: monospace;
+.flight-number {
+  font-weight: 700;
+  font-size: 1.25rem;
+  color: white;
+  background-color: rgba(0, 0, 0, 0.25);
+  border-radius: 0.25rem;
+  padding: 0.1rem 0.5rem;
 }
 
 .flight-status {
@@ -100,7 +107,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
-  font-size: 0.875rem; /* Smaller font size */
+  font-size: 0.875rem;
 }
 
 .label {
@@ -115,6 +122,59 @@
   font-style: italic;
 }
 
+/* Upcoming Flights Section */
+.upcoming-flights {
+  margin-top: 0.5rem;
+  padding: 0.75rem;
+  background-color: rgba(22, 78, 99, 0.3);
+  border-radius: 0.5rem;
+  border-left: 4px solid #0ea5e9;
+}
+
+.upcoming-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #38bdf8;
+  margin-bottom: 0.5rem;
+  text-align: center;
+}
+
+.upcoming-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.upcoming-item {
+  display: flex;
+  align-items: center;
+  padding: 0.25rem;
+  font-size: 0.875rem;
+}
+
+.upcoming-number {
+  font-weight: 700;
+  font-size: 1rem;
+  color: white;
+  background-color: #3b82f6;
+  border-radius: 0.25rem;
+  padding: 0.1rem 0.5rem;
+  margin-right: 0.5rem;
+}
+
+.upcoming-names {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.upcoming-time {
+  font-weight: 600;
+  color: #93c5fd;
+  margin-left: 0.5rem;
+}
+
 /* Custom Marker Styles */
 .marker-pin {
   width: 30px;
@@ -126,6 +186,17 @@
   justify-content: center;
   position: relative;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.4);
+}
+
+.marker-number {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(45deg);
+  color: white;
+  font-weight: bold;
+  font-size: 12px;
+  text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
 }
 
 /* Override Leaflet default styles */
@@ -149,4 +220,31 @@
 .leaflet-popup-content {
   margin: 10px;
   font-size: 14px;
+}
+
+/* Popup styling */
+.marker-popup {
+  min-width: 200px;
+}
+
+.popup-number {
+  font-weight: bold;
+  font-size: 1.1em;
+  margin-bottom: 5px;
+  padding: 2px 6px;
+  background-color: #1e293b;
+  color: white;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.popup-title {
+  font-weight: bold;
+  font-size: 1em;
+  margin-bottom: 5px;
+}
+
+.popup-status, .popup-altitude, .popup-time {
+  font-size: 0.9em;
+  margin-bottom: 3px;
 }
