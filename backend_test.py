@@ -92,14 +92,19 @@ class FlightControlAPITester:
         
         return success, flight_id
 
-    def test_update_flight_status(self, flight_id, status):
+    def test_update_flight_status(self, flight_id, status, use_api_key=True):
         """Update a flight's status"""
+        # Add estimated takeoff time (30 minutes before scheduled departure)
+        scheduled_departure = datetime.utcnow() + timedelta(hours=1)
+        estimated_takeoff = scheduled_departure - timedelta(minutes=30)
+        
         flight_data = {
             "id": flight_id,
             "pilot_name": f"Test Pilot {flight_id[:4]}",
             "passenger_name": f"Test Passenger {flight_id[:4]}",
             "status": status,
-            "scheduled_departure": (datetime.utcnow() + timedelta(hours=1)).isoformat(),
+            "scheduled_departure": scheduled_departure.isoformat(),
+            "estimated_takeoff": estimated_takeoff.isoformat(),
             "timestamp": datetime.utcnow().isoformat()
         }
         
@@ -108,7 +113,8 @@ class FlightControlAPITester:
             "POST",
             "webhook/flight",
             200,
-            data=flight_data
+            data=flight_data,
+            use_api_key=use_api_key
         )
 
     def test_create_position(self, flight_id, lat, lng, alt):
