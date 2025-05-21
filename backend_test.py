@@ -294,6 +294,11 @@ def main():
     # Test root endpoint
     tester.test_root_endpoint()
     
+    # Test API key authentication
+    print("\n🔒 Testing API Key Authentication...")
+    tester.test_webhook_without_api_key()
+    tester.test_webhook_with_invalid_api_key()
+    
     # Create test flights with different statuses
     flight_statuses = ["scheduled", "flying", "paused", "landed"]
     flight_ids = []
@@ -327,6 +332,9 @@ def main():
         
         for flight_id in flight_ids:
             tester.verify_flight_in_list(flight_id, flights)
+            
+            # Verify estimated takeoff time is present and correctly formatted
+            tester.verify_estimated_takeoff_in_flight(flight_id, flights)
     
     # Get all positions and verify our test positions are included
     success, positions_response = tester.test_get_positions()
