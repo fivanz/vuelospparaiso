@@ -1,79 +1,94 @@
-# Flight Control Dashboard for Paragliding
+# Panel de Control de Vuelos Paraíso
 
-A real-time monitoring dashboard for paragliding flights, designed to be displayed on a TV screen.
+Dashboard en tiempo real para el monitoreo de vuelos de parapente, diseñado para ser mostrado en pantalla TV.
 
-## Features
+## Características
 
-- **Map Display**: Shows real-time flight positions with GPS-style markers on a satellite map
-- **Flight Status Board**: Displays flight information in an airline-style format
-- **Webhook Integration**: Receives real-time position and flight status updates
+- **Visualización en Mapa**: Muestra posiciones de vuelo en tiempo real con marcadores tipo GPS en un mapa satelital
+- **Panel de Estado de Vuelos**: Muestra información de vuelos en formato similar a pantallas de aerolíneas
+- **Integración Webhook**: Recibe actualizaciones en tiempo real de posición y estado de vuelos
+- **Autenticación**: Usa API Key para proteger los endpoints de webhook
 
-## Webhooks
+## Webhooks Autenticados
 
-The application exposes two webhook endpoints:
+La aplicación expone dos endpoints webhook protegidos con API Key:
 
-1. **Position Updates**: `https://vuelospparaiso.tecndev.com/api/webhook/position`
-2. **Flight Status Updates**: `https://vuelospparaiso.tecndev.com/api/webhook/flight`
+1. **Actualizaciones de Posición**: `https://vuelospparaiso.tecndev.com/api/webhook/position`
+2. **Actualizaciones de Estado de Vuelo**: `https://vuelospparaiso.tecndev.com/api/webhook/flight`
 
-### Position Update Format
+### Autenticación
+
+Todos los webhooks requieren una clave API que debe enviarse en el encabezado HTTP `X-API-Key`. Por ejemplo:
+
+```
+X-API-Key: vuelos_paraiso_api_key_2025
+```
+
+> **IMPORTANTE**: Cambie la clave API predeterminada por una segura después de implementar la aplicación.
+
+### Formato de Actualización de Posición
 
 ```json
 {
-  "id": "flight-id",
+  "id": "vuelo-123",
   "latitude": 4.6097,
   "longitude": -74.0817,
   "altitude": 2800
 }
 ```
 
-### Flight Status Update Format
+### Formato de Actualización de Estado de Vuelo
 
 ```json
 {
-  "id": "flight-id",
+  "id": "vuelo-123",
   "pilot_name": "Juan Perez",
   "passenger_name": "Maria Lopez",
   "status": "flying",
-  "scheduled_departure": "2025-03-15T10:30:00Z"
+  "scheduled_departure": "2025-03-15T10:30:00Z",
+  "estimated_takeoff": "2025-03-15T10:35:00Z"
 }
 ```
 
-Flight status can be one of: `scheduled`, `flying`, `paused`, `landed`
+Los estados de vuelo pueden ser: `scheduled` (programado), `flying` (volando), `paused` (pausado), `landed` (aterrizó)
 
-## Technical Details
+## Detalles Técnicos
 
-- Frontend: React with Leaflet for maps
+- Frontend: React con Leaflet para mapas
 - Backend: FastAPI
-- Data Storage: In-memory (no persistence)
+- Almacenamiento de Datos: En memoria (sin persistencia)
 
-## Implementation Notes
+## Notas de Implementación
 
-### Webhook Integration
+### Integración Webhook
 
-When deploying to vuelospparaiso.tecndev.com, configure your systems to send webhook requests to:
+Al implementar en vuelospparaiso.tecndev.com, configure sus sistemas para enviar solicitudes webhook a:
 
-- Position updates: POST to `https://vuelospparaiso.tecndev.com/api/webhook/position`
-- Flight status updates: POST to `https://vuelospparaiso.tecndev.com/api/webhook/flight`
+- Actualizaciones de posición: POST a `https://vuelospparaiso.tecndev.com/api/webhook/position`
+- Actualizaciones de estado de vuelo: POST a `https://vuelospparaiso.tecndev.com/api/webhook/flight`
 
-Make sure each flight has a unique ID that is used consistently between position and status updates.
+Asegúrese de que cada vuelo tenga un ID único que se use de manera consistente entre las actualizaciones de posición y estado.
 
-### Example cURL Commands for Testing
+### Comandos cURL de Ejemplo para Pruebas
 
 ```bash
-# Update flight status
+# Actualizar estado de vuelo
 curl -X POST "https://vuelospparaiso.tecndev.com/api/webhook/flight" \
 -H "Content-Type: application/json" \
+-H "X-API-Key: vuelos_paraiso_api_key_2025" \
 -d '{
   "id": "vuelo-123",
   "pilot_name": "Juan Perez",
   "passenger_name": "Maria Lopez",
   "status": "flying",
-  "scheduled_departure": "2025-03-15T10:30:00Z"
+  "scheduled_departure": "2025-03-15T10:30:00Z",
+  "estimated_takeoff": "2025-03-15T10:35:00Z"
 }'
 
-# Update position
+# Actualizar posición
 curl -X POST "https://vuelospparaiso.tecndev.com/api/webhook/position" \
 -H "Content-Type: application/json" \
+-H "X-API-Key: vuelos_paraiso_api_key_2025" \
 -d '{
   "id": "vuelo-123",
   "latitude": 4.6097,
@@ -82,8 +97,41 @@ curl -X POST "https://vuelospparaiso.tecndev.com/api/webhook/position" \
 }'
 ```
 
-### TV Display Recommendations
+### Recomendaciones para Pantalla TV
 
-- The dashboard is designed to be displayed on a TV or large monitor
-- Recommended resolution: 1920x1080 (Full HD) or higher
-- Use a browser in full-screen mode (F11 in most browsers)
+- El dashboard está diseñado para ser mostrado en un TV o monitor grande
+- Resolución recomendada: 1920x1080 (Full HD) o superior
+- Use un navegador en modo pantalla completa (F11 en la mayoría de navegadores)
+
+## Guía de Configuración
+
+### Cambiar la API Key
+
+Para cambiar la API Key por razones de seguridad:
+
+1. Edite el archivo `.env` en el directorio `/app/backend/`
+2. Cambie el valor de `API_KEY` a una cadena segura y aleatoria
+3. Reinicie el servicio backend
+
+### Personalización
+
+Para personalizar el Panel de Control:
+
+1. **Título**: Para cambiar el título, edite la línea con `flight-list-title` en `/app/frontend/src/App.js`
+2. **Colores**: Los colores de los estados se pueden ajustar en las variables `statusColors` en `/app/frontend/src/App.js`
+3. **Posición inicial del mapa**: Ajuste las coordenadas en la función `setView` donde inicializa el mapa para centrarlo en su área de operación
+
+## Desarrollo Adicional
+
+### Extensiones Posibles
+
+- Añadir historial de vuelos
+- Implementar autenticación en el panel de visualización
+- Agregar métricas de vuelo adicionales como velocidad, dirección, etc.
+- Añadir notificaciones para cambios de estado
+
+### Seguridad
+
+- La API Key predeterminada debe cambiarse antes de implementar en producción
+- Considere implementar HTTPS para proteger la comunicación
+- Se recomienda limitar el acceso a los webhooks por IP si es posible

@@ -41,6 +41,13 @@ const createMarkerIcon = (status) => {
   });
 };
 
+// Format date for display
+const formatDateTime = (dateString) => {
+  if (!dateString) return "";
+  const date = new Date(dateString);
+  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+};
+
 function App() {
   // State for flight data
   const [flights, setFlights] = useState([]);
@@ -99,9 +106,16 @@ function App() {
       const markerIcon = createMarkerIcon(status);
       
       const popupContent = `
-        <div class="font-bold">${flight ? `${flight.pilot_name} with ${flight.passenger_name}` : 'Unknown Flight'}</div>
-        <div>Status: ${flight ? flight.status : 'unknown'}</div>
-        <div>Altitude: ${position.altitude}m</div>
+        <div class="font-bold">${flight ? `${flight.pilot_name} con ${flight.passenger_name}` : 'Vuelo Desconocido'}</div>
+        <div>Estado: ${flight ? (
+          flight.status === 'scheduled' ? 'PROGRAMADO' : 
+          flight.status === 'flying' ? 'VOLANDO' : 
+          flight.status === 'paused' ? 'PAUSADO' : 
+          flight.status === 'landed' ? 'ATERRIZÓ' : 
+          flight.status.toUpperCase()
+        ) : 'desconocido'}</div>
+        <div>Altitud: ${position.altitude}m</div>
+        ${flight && flight.estimated_takeoff ? `<div>Despegue Estimado: ${formatDateTime(flight.estimated_takeoff)}</div>` : ''}
       `;
 
       if (updatedMarkers[position.id]) {
@@ -163,10 +177,18 @@ function App() {
                 <div className="flight-details">
                   <div><span className="label">Piloto:</span> {flight.pilot_name}</div>
                   <div><span className="label">Pasajero:</span> {flight.passenger_name}</div>
+                  
                   {flight.scheduled_departure && (
                     <div>
-                      <span className="label">Salida:</span> 
-                      {new Date(flight.scheduled_departure).toLocaleTimeString()}
+                      <span className="label">Programado:</span> 
+                      {formatDateTime(flight.scheduled_departure)}
+                    </div>
+                  )}
+                  
+                  {flight.estimated_takeoff && (
+                    <div>
+                      <span className="label">Despegue Est:</span> 
+                      {formatDateTime(flight.estimated_takeoff)}
                     </div>
                   )}
                 </div>
