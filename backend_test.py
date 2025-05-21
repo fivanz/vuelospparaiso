@@ -117,7 +117,7 @@ class FlightControlAPITester:
             use_api_key=use_api_key
         )
 
-    def test_create_position(self, flight_id, lat, lng, alt):
+    def test_create_position(self, flight_id, lat, lng, alt, use_api_key=True):
         """Create a position for a flight"""
         position_data = {
             "id": flight_id,
@@ -132,7 +132,8 @@ class FlightControlAPITester:
             "POST",
             "webhook/position",
             200,
-            data=position_data
+            data=position_data,
+            use_api_key=use_api_key
         )
 
     def test_get_flights(self):
