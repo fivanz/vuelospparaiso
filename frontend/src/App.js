@@ -16,7 +16,7 @@ const statusColors = {
   landed: "bg-gray-200 border-gray-500"
 };
 
-// Marker icons for different flight statuses
+// Create GPS marker icons for different flight statuses
 const createMarkerIcon = (status) => {
   const color = {
     scheduled: "#3b82f6", // blue
@@ -25,11 +25,19 @@ const createMarkerIcon = (status) => {
     landed: "#6b7280"     // gray
   }[status] || "#ef4444"; // default red
 
+  // Create SVG icon for GPS marker with the status color
   return L.divIcon({
     className: 'custom-div-icon',
-    html: `<div style="background-color: ${color}; width: 20px; height: 20px; border-radius: 50%; border: 2px solid white;"></div>`,
-    iconSize: [20, 20],
-    iconAnchor: [10, 10]
+    html: `
+      <div class="marker-pin" style="background-color: ${color};">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" width="16" height="16" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+          <path d="M12 0c-4.198 0-8 3.403-8 7.602 0 4.198 3.469 9.21 8 16.398 4.531-7.188 8-12.2 8-16.398 0-4.199-3.801-7.602-8-7.602zm0 11c-1.657 0-3-1.343-3-3s1.343-3 3-3 3 1.343 3 3-1.343 3-3 3z" />
+        </svg>
+      </div>
+    `,
+    iconSize: [30, 42],
+    iconAnchor: [15, 42],
+    popupAnchor: [0, -40]
   });
 };
 
@@ -47,9 +55,17 @@ function App() {
       // Initialize Leaflet map
       mapInstanceRef.current = L.map(mapRef.current).setView([4.6097, -74.0817], 13); // Default to Bogotá, Colombia
       
-      // Add tile layer (OpenStreetMap)
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      // Add satellite tile layer
+      L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Imagery &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
+        maxZoom: 19
+      }).addTo(mapInstanceRef.current);
+      
+      // Add labels on top of satellite imagery
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        subdomains: 'abcd',
+        maxZoom: 19
       }).addTo(mapInstanceRef.current);
     }
   }, []);
@@ -125,7 +141,7 @@ function App() {
         
         {/* Right Panel - Flight List */}
         <div className="flight-list">
-          <h1 className="flight-list-title">Flight Control</h1>
+          <h1 className="flight-list-title">Vuelos Paraíso</h1>
           
           <div className="flight-cards">
             {flights.map(flight => (
@@ -136,16 +152,20 @@ function App() {
                 <div className="flight-header">
                   <span className="flight-id">ID: {flight.id.substring(0, 8)}</span>
                   <span className={`flight-status status-${flight.status}`}>
-                    {flight.status.toUpperCase()}
+                    {flight.status === 'scheduled' ? 'PROGRAMADO' : 
+                     flight.status === 'flying' ? 'VOLANDO' : 
+                     flight.status === 'paused' ? 'PAUSADO' : 
+                     flight.status === 'landed' ? 'ATERRIZÓ' : 
+                     flight.status.toUpperCase()}
                   </span>
                 </div>
                 
                 <div className="flight-details">
-                  <div><span className="label">Pilot:</span> {flight.pilot_name}</div>
-                  <div><span className="label">Passenger:</span> {flight.passenger_name}</div>
+                  <div><span className="label">Piloto:</span> {flight.pilot_name}</div>
+                  <div><span className="label">Pasajero:</span> {flight.passenger_name}</div>
                   {flight.scheduled_departure && (
                     <div>
-                      <span className="label">Departure:</span> 
+                      <span className="label">Salida:</span> 
                       {new Date(flight.scheduled_departure).toLocaleTimeString()}
                     </div>
                   )}
@@ -155,7 +175,7 @@ function App() {
             
             {flights.length === 0 && (
               <div className="no-flights-message">
-                No flights available. Awaiting data...
+                No hay vuelos disponibles. Esperando datos...
               </div>
             )}
           </div>
