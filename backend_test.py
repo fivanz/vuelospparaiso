@@ -169,20 +169,118 @@ class FlightControlAPITester:
         
         return found
 
-    def verify_position_in_list(self, flight_id, positions_list):
-        """Verify a position exists in the positions list"""
+    def test_webhook_without_api_key(self):
+        """Test webhook endpoints without API key (should return 403)"""
+        # Create a test flight without API key
+        flight_id = str(uuid.uuid4())
+        flight_data = {
+            "id": flight_id,
+            "pilot_name": f"Test Pilot {flight_id[:4]}",
+            "passenger_name": f"Test Passenger {flight_id[:4]}",
+            "status": "scheduled",
+            "scheduled_departure": datetime.utcnow().isoformat(),
+            "timestamp": datetime.utcnow().isoformat()
+        }
+        
+        # Test flight webhook without API key
+        success_flight, _ = self.run_test(
+            "Flight Webhook without API Key",
+            "POST",
+            "webhook/flight",
+            403,  # Expect 403 Forbidden
+            data=flight_data,
+            use_api_key=False
+        )
+        
+        # Test position webhook without API key
+        position_data = {
+            "id": flight_id,
+            "latitude": 4.6097,
+            "longitude": -74.0817,
+            "altitude": 1000,
+            "timestamp": datetime.utcnow().isoformat()
+        }
+        
+        success_position, _ = self.run_test(
+            "Position Webhook without API Key",
+            "POST",
+            "webhook/position",
+            403,  # Expect 403 Forbidden
+            data=position_data,
+            use_api_key=False
+        )
+        
+        return success_flight and success_position
+    
+    def test_webhook_with_invalid_api_key(self):
+        """Test webhook endpoints with invalid API key (should return 403)"""
+        # Create a test flight with invalid API key
+        flight_id = str(uuid.uuid4())
+        flight_data = {
+            "id": flight_id,
+            "pilot_name": f"Test Pilot {flight_id[:4]}",
+            "passenger_name": f"Test Passenger {flight_id[:4]}",
+            "status": "scheduled",
+            "scheduled_departure": datetime.utcnow().isoformat(),
+            "timestamp": datetime.utcnow().isoformat()
+        }
+        
+        # Test flight webhook with invalid API key
+        success_flight, _ = self.run_test(
+            "Flight Webhook with Invalid API Key",
+            "POST",
+            "webhook/flight",
+            403,  # Expect 403 Forbidden
+            data=flight_data,
+            use_api_key=True,
+            invalid_api_key=True
+        )
+        
+        # Test position webhook with invalid API key
+        position_data = {
+            "id": flight_id,
+            "latitude": 4.6097,
+            "longitude": -74.0817,
+            "altitude": 1000,
+            "timestamp": datetime.utcnow().isoformat()
+        }
+        
+        success_position, _ = self.run_test(
+            "Position Webhook with Invalid API Key",
+            "POST",
+            "webhook/position",
+            403,  # Expect 403 Forbidden
+            data=position_data,
+            use_api_key=True,
+            invalid_api_key=True
+        )
+        
+        return success_flight and success_position
+    
+    def verify_estimated_takeoff_in_flight(self, flight_id, flights_list):
+        """Verify a flight has the estimated takeoff time field"""
         self.tests_run += 1
-        print(f"\n🔍 Verifying position for flight {flight_id} exists in positions list...")
+        print(f"\n🔍 Verifying estimated takeoff time for flight {flight_id}...")
         
-        found = any(position['id'] == flight_id for position in positions_list)
+        flight = next((f for f in flights_list if f['id'] == flight_id), None)
         
-        if found:
+        if not flight:
+            print(f"❌ Failed - Flight {flight_id} not found in list")
+            return False
+        
+        if 'estimated_takeoff' not in flight or not flight['estimated_takeoff']:
+            print(f"❌ Failed - Estimated takeoff time not found for flight {flight_id}")
+            return False
+        
+        # Verify the format by parsing the datetime
+        try:
+            takeoff_time = datetime.fromisoformat(flight['estimated_takeoff'].replace('Z', '+00:00'))
             self.tests_passed += 1
-            print(f"✅ Passed - Position for flight {flight_id} found in list")
-        else:
-            print(f"❌ Failed - Position for flight {flight_id} not found in list")
-        
-        return found
+            print(f"✅ Passed - Estimated takeoff time found: {takeoff_time}")
+            return True
+        except ValueError as e:
+            print(f"❌ Failed - Invalid estimated takeoff time format: {e}")
+            return False
 
 def main():
     # Get the backend URL from the frontend .env file
